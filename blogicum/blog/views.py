@@ -1,8 +1,7 @@
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Count
-from django.http import HttpResponse
 from django.views.generic import DetailView, ListView, TemplateView, CreateView, UpdateView, DeleteView
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
