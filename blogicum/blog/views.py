@@ -11,7 +11,7 @@ from django.urls import reverse_lazy, reverse
 from .forms import PostCreateForm, ProfileForm, CommentForm
 from .models import Category, Post, User, Comment
 from .mixins import OnlyAuthorMixin, CommentMixin
-from .utils import get_filtered_qs, send_test_email
+from .utils import get_filtered_qs
 
 PAGINATE_COUNT = 10
 
