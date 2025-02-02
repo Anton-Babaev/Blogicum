@@ -10,6 +10,7 @@ class OnlyAuthorMixin(UserPassesTestMixin):
         object = self.get_object()
         return object.author == self.request.user
 
+
 class CommentMixin(LoginRequiredMixin):
     model = Comment
     template_name = 'blog/comment.html'

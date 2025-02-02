@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -144,6 +143,5 @@ LOGIN_URL = 'login'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Убедитесь, что путь к директории sent_emails существует
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails' # Путь к директории для хранения писем
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'

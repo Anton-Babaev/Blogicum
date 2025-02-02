@@ -1,8 +1,9 @@
-from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q, Count
-from django.views.generic import DetailView, ListView, TemplateView, CreateView, UpdateView, DeleteView
+from django.views.generic import (
+    DetailView, ListView, TemplateView, CreateView, UpdateView, DeleteView
+)
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.urls import reverse_lazy, reverse
@@ -14,43 +15,59 @@ from .utils import get_filtered_qs, send_test_email
 
 PAGINATE_COUNT = 10
 
+
 class IndexView(ListView):
     """CBV-index"""
+
     model = Post
     template_name = 'blog/index.html'
     ordering = '-pub_date'
-    paginate_by = PAGINATE_COUNT  
+    paginate_by = PAGINATE_COUNT
 
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = get_filtered_qs(queryset)
-        return queryset.select_related('author').prefetch_related('category', 'location')
+        return queryset.select_related('author').prefetch_related(
+            'category',
+            'location'
+        )
 
 
 class PostView(DetailView):
     """CBV-post"""
+
     model = Post
     template_name = 'blog/detail.html'
     pk_url_kwarg = 'post_id'
-    
+
     def get_queryset(self):
         queryset = super().get_queryset()
-        
-        # Проверяем, является ли текущий пользователь автором поста
+
         if self.request.user.is_authenticated:
             user_posts = Q(author=self.request.user)
-            published_posts = Q(is_published=True, pub_date__lte=timezone.now(), category__is_published=True)
-            return queryset.filter(user_posts | published_posts).select_related('author').prefetch_related('category', 'location', 'comments')
-        
-        # Для неавторизованных пользователей показываем только опубликованные посты
-        return get_filtered_qs(queryset).select_related('author').prefetch_related('category', 'location', 'comments')
-    
+            published_posts = Q(
+                is_published=True,
+                pub_date__lte=timezone.now(),
+                category__is_published=True
+            )
+            return (
+                queryset
+                .filter(user_posts | published_posts)
+                .select_related('author')
+                .prefetch_related('category', 'location', 'comments')
+            )
+        return (
+            get_filtered_qs(queryset)
+            .select_related('author')
+            .prefetch_related('category', 'location', 'comments')
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.get_object()
         context['comments'] = post.comments.all().order_by('created_at')
         if self.request.user.is_authenticated:
-            context['form'] = CommentForm()  
+            context['form'] = CommentForm()
         return context
 
 
@@ -59,7 +76,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     form_class = PostCreateForm
     template_name = 'blog/create.html'
     login_url = '/login/'
-        
+
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
@@ -67,8 +84,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         username = self.object.author.username
         return reverse('blog:profile', args=[username])
-    
-    
+
+
 class PostUpdateView(OnlyAuthorMixin, UpdateView):
     model = Post
     form_class = PostCreateForm
@@ -89,9 +106,9 @@ class PostUpdateView(OnlyAuthorMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
-    template_name = 'blog/create.html'  
+    template_name = 'blog/create.html'
     success_url = reverse_lazy('blog:index')
-    pk_url_kwarg = 'post_id'  
+    pk_url_kwarg = 'post_id'
 
     def get_queryset(self):
         return super().get_queryset().filter(author=self.request.user)
@@ -99,21 +116,25 @@ class PostDeleteView(LoginRequiredMixin, DeleteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return context
-    
+
 
 class CategoryView(DetailView):
     """CBV-category"""
+
     model = Category
     template_name = 'blog/category.html'
     context_object_name = 'category'
-    paginate_by = PAGINATE_COUNT  
+    paginate_by = PAGINATE_COUNT
 
     def get_queryset(self):
         return super().get_queryset().filter(is_published=True)
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        posts = get_filtered_qs(Post.objects, category=self.object).select_related('author', 'location').order_by('-pub_date')
+        posts = get_filtered_qs(
+            Post.objects,
+            category=self.object
+        ).select_related('author', 'location').order_by('-pub_date')
         paginator = Paginator(posts, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -123,25 +144,33 @@ class CategoryView(DetailView):
 
 class ProfileView(TemplateView):
     """CBV-profile"""
+
     template_name = 'blog/profile.html'
     paginate_by = PAGINATE_COUNT
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         username = self.kwargs['username']
         profile = get_object_or_404(User, username=username)
         if profile == self.request.user:
-            posts = Post.objects.filter(author=profile).order_by('-pub_date').annotate(comment_count=Count('comments'))
+            posts = (
+                Post.objects.filter(author=profile)
+                .order_by('-pub_date')
+                .annotate(comment_count=Count('comments'))
+            )
         else:
-            posts = get_filtered_qs(Post.objects, author=profile).order_by('-pub_date')
-        
-        paginator = Paginator(posts, self.paginate_by) 
+            posts = (
+                get_filtered_qs(Post.objects, author=profile)
+                .order_by('-pub_date')
+            )
+
+        paginator = Paginator(posts, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         context['profile'] = profile
         context['page_obj'] = page_obj
         return context
-    
+
 
 class ProfileEditView(UpdateView):
     model = User
@@ -152,7 +181,9 @@ class ProfileEditView(UpdateView):
         return get_object_or_404(User, pk=self.request.user.pk)
 
     def get_success_url(self):
-        return reverse('blog:profile', kwargs={'username': self.request.user.username})
+        return reverse(
+            'blog:profile',
+            kwargs={'username': self.request.user.username})
 
 
 class AddCommentView(LoginRequiredMixin, CreateView):
@@ -198,17 +229,3 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
         context = super().get_context_data(**kwargs)
         context['post_id'] = self.kwargs.get('post_id')
         return context
-# class CommentDeleteView(DeleteView):
-#     model = Comment
-#     template_name = 'blog/comment.html' 
-#     success_url = reverse_lazy('blog:index') 
-#     pk_url_kwarg = 'comment_id'
-
-#     def get_queryset(self):
-#         return super().get_queryset().filter(author=self.request.user)
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['post_id'] = self.kwargs.get('post_id')
-#         return context
-    

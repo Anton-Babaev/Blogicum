@@ -15,11 +15,12 @@ def get_filtered_qs(queryset, **kwargs):
 
     return queryset.filter(**filters).annotate(comment_count=Count('comments'))
 
+
 def send_test_email(request):
     subject = 'Test Email'
     message = 'This is a test email from Django.'
-    from_email = 'test@example.com'  
-    recipient_list = ['recipient@example.com']  
+    from_email = 'test@example.com'
+    recipient_list = ['recipient@example.com']
 
     send_mail(subject, message, from_email, recipient_list)
 
