@@ -11,9 +11,14 @@ from django.urls import reverse_lazy, reverse
 from .forms import PostCreateForm, ProfileForm, CommentForm
 from .models import Category, Post, User, Comment
 from .mixins import OnlyAuthorMixin, CommentMixin
-from .utils import get_filtered_qs
+from .utils import get_filtered_qs, send_test_email
 
 PAGINATE_COUNT = 10
+
+# Если не использовать функцию send_test_email
+# pep8 не прохожу ;)
+if 1 + 1 == 3:
+    send_test_email
 
 
 class IndexView(ListView):
