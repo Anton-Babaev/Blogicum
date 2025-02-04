@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Монополия</title>
+    <style>
+        /* Стили для основной части страницы */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        /* Стиль для контейнера с информацией */
+        .info-container {
+            margin-bottom: 20px; /* Отступ между информацией и полем */
+        }
+
+        /* Стиль для игрового поля */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 100px); /* 6 столбцов */
+            grid-template-rows: repeat(6, 100px);   /* 6 строк */
+            gap: 5px; /* Промежутки между клетками */
+            justify-content: center;
+            margin: 0 auto; /* Центрирование поля */
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: lightgray;
+            border: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .empty-cell {
+            background-color: white; /* Центральные клетки пустые */
+            border: none;
+        }
+
+        .start { background-color: yellow; }
+        .jail { background-color: red; }
+        .treasury { background-color: green; }
+        .free-parking { background-color: blue; }
+
+        .player {
+            position: relative;
+        }
+
+        .player::after {
+            content: " Pasta ";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Игра Монополия</h1>
+
+    <!-- Контейнер с информацией -->
+    <div class="info-container">
+        <p>Ваш текущий баланс: ${{ player.balance }}</p>
+
+        <!-- Результаты броска кубиков -->
+        {% if dice1 and dice2 %}
+            <p>Вы бросили кубики: {{ dice1 }} и {{ dice2 }} (всего шагов: {{ total_steps }})</p>
+            <p>Вы оказались на клетке: {{ current_tile.name }}</p>
+        {% endif %}
+
+        <!-- Кнопка сделать ход -->
+        <button onclick="location.href='{% url 'monopoly:roll_dice' game.id %}'">Сделать ход</button>
+    </div>
+
+    <!-- Игровое поле -->
+    <div id="game-board">
+        {% for row in board %}
+            {% for cell in row %}
+                <div class="cell 
+                    {% if not cell %}empty-cell{% endif %} 
+                    {% if player_position_in_board.0 == forloop.parentloop.counter0 and player_position_in_board.1 == forloop.counter0 %}player{% endif %}">
+                    {% if cell %}
+                        {{ cell.name }}
+                    {% else %}
+                        &nbsp; <!-- Пустое место для пустых клеток -->
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</body>
+</html>
